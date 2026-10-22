@@ -89,8 +89,8 @@
 
 **Мета:** без блокувань ловити конфлікт через версію рядка.
 
-- [ ] Додай колонку: `ALTER TABLE accounts ADD COLUMN version INTEGER NOT NULL DEFAULT 0;`
-- [ ] Endpoint `POST /withdraw-optimistic`:
+- [x] Додай колонку: `ALTER TABLE accounts ADD COLUMN version INTEGER NOT NULL DEFAULT 0;`
+- [x] Endpoint `POST /withdraw-optimistic`:
   1. `SELECT balance_cents, version`
   2. затримка (щоб два запити прочитали одну й ту саму version)
   3. перевірка balance у JS
@@ -112,8 +112,8 @@
 
 ## Завдання 4. Порівняти три рішення в README
 
-- [ ] Створи `README.md` з таблицею: **atomic conditional update / optimistic locking / pessimistic locking**
-- [ ] Для кожного опиши:
+- [x] Створи `README.md` з таблицею: **atomic conditional update / optimistic locking / pessimistic locking**
+- [x] Для кожного опиши:
   - коли підходить
   - плюси
   - мінуси

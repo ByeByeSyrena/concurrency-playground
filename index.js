@@ -32,6 +32,59 @@ app.get('/balance', async (req, res) => {
   }
 });
 
+app.post('/withdraw-optimistic', async (req, res) => {
+  const { amountCents } = req.body;
+
+  if (!Number.isSafeInteger(amountCents) || amountCents <= 0) {
+    return res.status(400).json({
+      error: 'amountCents must be a positive integer'
+    });
+  }
+
+  try {
+    const { rows } = await pool.query('SELECT balance_cents, version FROM accounts WHERE id = $1', [1]);
+
+    // Спеціально залишаємо паузу, щоб легко побачити що версія встигла змінитись
+    await new Promise((resolve) => setTimeout(resolve, 50000));
+
+    const balance = Number(rows[0].balance_cents);
+    const currentVersion = Number(rows[0].version);
+
+    if (balance < amountCents) {
+      return res.status(400).json({
+        error: 'Not enough money'
+      });
+    }
+
+    const updatedVersion = currentVersion + 1;
+    const updatedBalance = balance - amountCents;
+
+    const resultUpdate = await pool.query('UPDATE accounts SET balance_cents = $1, version = $3 WHERE id = $2 AND version = $4 RETURNING balance_cents, version', [updatedBalance, 1, updatedVersion, currentVersion]);
+
+    console.log();
+    if (!resultUpdate.rowCount) {
+      return res.status(409).json({
+        error: 'Version conflict'
+      });
+    }
+
+    const newBalance = Number(resultUpdate.rows[0].balance_cents);
+    const newVersion = Number(resultUpdate.rows[0].version);
+
+    res.json({
+      success: true,
+      withdrawnCents: amountCents,
+      balanceCents: newBalance,
+      version: newVersion
+    });
+  } catch (err) {
+    console.log('error', err);
+    res.status(500).json({
+      error: 'Internal server error'
+    });
+  }
+});
+
 // app.post('/withdraw-pessimistic', async (req, res) => {
 //   const { amountCents } = req.body;
 

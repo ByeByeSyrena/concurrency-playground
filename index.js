@@ -8,7 +8,7 @@ const app = express();
 app.use(express.json());
 
 // let balance = 100; mutex-lock
-// const mutex = new Mutex();
+const mutex = new Mutex();
 
 app.get('/balance', async (req, res) => {
   try {
@@ -29,6 +29,44 @@ app.get('/balance', async (req, res) => {
     res.status(500).json({
       error: 'Internal server error'
     });
+  }
+});
+
+app.post('/withdraw-mutex', async (req, res) => {
+  const { amountCents } = req.body;
+
+  await mutex.lock();
+  try {
+    const { rows } = await pool.query('SELECT balance_cents FROM accounts WHERE id = $1', [1]);
+
+    const balance = Number(rows[0].balance_cents);
+
+    if (balance < amountCents) {
+      return res.status(400).json({
+        error: 'Not enough money'
+      });
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    const updatedBalance = balance - amountCents;
+
+    const resultUpdate = await pool.query('UPDATE accounts SET balance_cents = $1 WHERE id = $2 RETURNING balance_cents', [updatedBalance, 1]);
+
+    const newBalance = Number(resultUpdate.rows[0].balance_cents);
+
+    res.json({
+      success: true,
+      withdrawnCents: amountCents,
+      balanceCents: newBalance,
+    });
+  } catch (err) {
+    console.log('error', err);
+    res.status(500).json({
+      error: 'Internal server error'
+    });
+  } finally {
+    mutex.unlock();
   }
 });
 
@@ -261,6 +299,8 @@ app.post('/reset', async (req, res) => {
   }
 });
 
-app.listen(3000, () => {
-  console.log('Server running on http://localhost:3000');
+const port = process.env.PORT ?? 3000;
+
+app.listen(port, () => {
+  console.log(`Server running on http://localhost:${port}`);
 });

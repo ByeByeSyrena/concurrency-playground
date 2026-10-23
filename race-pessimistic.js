@@ -1,7 +1,8 @@
 // Запуск: node race-pessimistic.js [path]
 // За замовчуванням б'є в /withdraw-pessimistic, можна передати інший endpoint для порівняння.
 const BASE_URL = "http://localhost:3000";
-const ENDPOINT = process.argv[2] || "/withdraw-pessimistic";
+// Слеш на початку необовʼязковий: Git Bash перетворює "/path" на Windows-шлях, тож пиши просто withdraw
+const ENDPOINT = "/" + (process.argv[2] || "withdraw-pessimistic").replace(/^\/+/, "");
 const START_BALANCE = 10000;
 const AMOUNT = 8000;
 

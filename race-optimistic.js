@@ -2,7 +2,8 @@
 // За замовчуванням б'є в /withdraw-optimistic, можна передати інший endpoint для порівняння.
 // Очікування: один 200, другий 409, баланс зменшився рівно на AMOUNT, ніхто ні на кого не чекав.
 const BASE_URL = "http://localhost:3000";
-const ENDPOINT = process.argv[2] || "/withdraw-optimistic";
+// Слеш на початку необовʼязковий: Git Bash перетворює "/path" на Windows-шлях, тож пиши просто withdraw
+const ENDPOINT = "/" + (process.argv[2] || "withdraw-optimistic").replace(/^\/+/, "");
 const START_BALANCE = 10000;
 const AMOUNT = 10;
 
